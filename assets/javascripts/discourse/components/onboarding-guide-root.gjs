@@ -9,6 +9,7 @@ import { popupAjaxError } from "discourse/lib/ajax-error";
 import OnboardingGuideSamplePost from "./onboarding-guide-sample-post";
 import DButton from "discourse/ui-kit/d-button";
 import DModal from "discourse/ui-kit/d-modal";
+import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { i18n } from "discourse-i18n";
 
@@ -31,6 +32,10 @@ export default class OnboardingGuideRoot extends Component {
   @tracked selectedPreferences = {};
   @tracked pledgeInputs = {};
   @tracked sampleFlagClicked = false;
+  @tracked pmSidebarOpen = false;
+  @tracked pmMoreOpen = false;
+  @tracked pmGroupsOpen = false;
+  @tracked pmMessageClicked = false;
 
   constructor() {
     super(...arguments);
@@ -72,14 +77,24 @@ export default class OnboardingGuideRoot extends Component {
           (pledge, index) => this.pledgeInputs[index] === pledge
         );
       case "flagging":
-        return this.sampleFlagClicked;
+        return this.sampleFlagClicked && this.pmMessageClicked;
       default:
         return true;
     }
   }
 
+  get continueHint() {
+    if (this.activeStep === "flagging" && !this.canContinue) {
+      return i18n("onboarding_guide.flagging.continue_hint");
+    }
+  }
+
   get isLastStep() {
     return this.currentStepIndex === this.steps.length - 1;
+  }
+
+  get isFirstStep() {
+    return this.currentStepIndex <= 0;
   }
 
   async loadState() {
@@ -106,14 +121,17 @@ export default class OnboardingGuideRoot extends Component {
     }
   }
 
+  @action
   stepLabel(step) {
     return i18n(`onboarding_guide.steps.${step}`);
   }
 
+  @action
   preferenceKey(item) {
     return `${item.type}:${item.id}`;
   }
 
+  @action
   selectedState(item) {
     return this.selectedPreferences[this.preferenceKey(item)];
   }
@@ -126,6 +144,39 @@ export default class OnboardingGuideRoot extends Component {
   @action
   markSampleFlagged() {
     this.sampleFlagClicked = true;
+  }
+
+  @action
+  markPmMessageClicked() {
+    this.pmMessageClicked = true;
+  }
+
+  @action
+  togglePmSidebar() {
+    this.pmSidebarOpen = !this.pmSidebarOpen;
+    if (!this.pmSidebarOpen) {
+      this.pmMoreOpen = false;
+      this.pmGroupsOpen = false;
+    }
+  }
+
+  @action
+  togglePmMore() {
+    if (!this.pmSidebarOpen) {
+      return;
+    }
+
+    this.pmMoreOpen = !this.pmMoreOpen;
+    if (!this.pmMoreOpen) {
+      this.pmGroupsOpen = false;
+    }
+  }
+
+  @action
+  openPmGroups() {
+    this.pmSidebarOpen = true;
+    this.pmMoreOpen = false;
+    this.pmGroupsOpen = true;
   }
 
   @action
@@ -161,6 +212,7 @@ export default class OnboardingGuideRoot extends Component {
 
     const progress = {
       ...(this.state.progress || {}),
+      version: this.state.current_version,
       [this.activeStep]: true,
     };
 
@@ -204,6 +256,32 @@ export default class OnboardingGuideRoot extends Component {
 
       this.state = { ...this.state, progress };
       this.activeStep = nextStep;
+    } catch (error) {
+      popupAjaxError(error);
+    }
+  }
+
+  @action
+  async previous() {
+    if (this.isFirstStep) {
+      return;
+    }
+
+    const previousStep = this.steps[this.currentStepIndex - 1];
+    const progress = {
+      ...(this.state.progress || {}),
+      version: this.state.current_version,
+      current_step: previousStep,
+    };
+
+    try {
+      await ajax("/onboarding-guide/progress", {
+        method: "POST",
+        data: { progress },
+      });
+
+      this.state = { ...this.state, progress };
+      this.activeStep = previousStep;
     } catch (error) {
       popupAjaxError(error);
     }
@@ -274,29 +352,96 @@ export default class OnboardingGuideRoot extends Component {
                     groupName=this.state.moderators_group_name
                   }}
                 </li>
+                <li>
+                  {{i18n
+                    "onboarding_guide.flagging.pm_step_four"
+                    groupName=this.state.moderators_group_name
+                  }}
+                </li>
               </ol>
 
-              <div class="onboarding-guide-message-demo">
-                <div class="onboarding-guide-message-demo__row">
-                  <span class="onboarding-guide-message-demo__label">
-                    {{i18n "onboarding_guide.flagging.pm_to_label"}}
-                  </span>
-                  <span class="onboarding-guide-message-demo__value">
-                    @{{this.state.moderators_group_name}}
-                  </span>
-                </div>
-                <div class="onboarding-guide-message-demo__row">
-                  <span class="onboarding-guide-message-demo__label">
-                    {{i18n "onboarding_guide.flagging.pm_title_label"}}
-                  </span>
-                  <span class="onboarding-guide-message-demo__value">
-                    {{i18n "onboarding_guide.flagging.pm_title_example"}}
-                  </span>
-                </div>
-                <div class="onboarding-guide-message-demo__body">
-                  {{i18n "onboarding_guide.flagging.pm_body_example"}}
+              <div class="onboarding-guide-group-demo">
+                <div class="onboarding-guide-group-demo__mobile-frame">
+                  <div class="onboarding-guide-group-demo__topbar">
+                    <button
+                      type="button"
+                      class="onboarding-guide-group-demo__hamburger"
+                      {{on "click" this.togglePmSidebar}}
+                      aria-label={{i18n "onboarding_guide.flagging.pm_hamburger_label"}}
+                    >
+                      {{dIcon "bars"}}
+                    </button>
+                  </div>
+
+                  {{#if this.pmSidebarOpen}}
+                    <div class="onboarding-guide-group-demo__sidebar">
+                      <div class="onboarding-guide-group-demo__sidebar-item">
+                        {{i18n "onboarding_guide.flagging.pm_sidebar_home"}}
+                      </div>
+                      <div class="onboarding-guide-group-demo__sidebar-item">
+                        {{i18n "onboarding_guide.flagging.pm_sidebar_latest"}}
+                      </div>
+                      <div class="onboarding-guide-group-demo__more-wrap">
+                        <button
+                          type="button"
+                          class="onboarding-guide-group-demo__sidebar-item is-active"
+                          {{on "click" this.togglePmMore}}
+                        >
+                          <span class="onboarding-guide-group-demo__ellipsis">...</span>
+                          <span>{{i18n "onboarding_guide.flagging.pm_sidebar_more"}}</span>
+                        </button>
+
+                        {{#if this.pmMoreOpen}}
+                          <div class="onboarding-guide-group-demo__dropdown">
+                            <div>{{i18n "onboarding_guide.flagging.pm_dropdown_bookmarks"}}</div>
+                            <button
+                              type="button"
+                              class="onboarding-guide-group-demo__dropdown-item {{if this.pmGroupsOpen "is-active" ""}}"
+                              {{on "click" this.openPmGroups}}
+                            >
+                              {{i18n "onboarding_guide.flagging.pm_dropdown_groups"}}
+                            </button>
+                            <div>{{i18n "onboarding_guide.flagging.pm_dropdown_tags"}}</div>
+                          </div>
+                        {{/if}}
+                      </div>
+                    </div>
+                  {{/if}}
                 </div>
               </div>
+
+              {{#if this.pmGroupsOpen}}
+                <div class="onboarding-guide-group-card">
+                  <div class="onboarding-guide-group-card__header">
+                    <div>
+                      <div class="onboarding-guide-group-card__title">
+                        {{i18n "onboarding_guide.flagging.pm_group_title"}}
+                      </div>
+                      <div class="onboarding-guide-group-card__subtitle">
+                        {{i18n
+                          "onboarding_guide.flagging.pm_group_hint"
+                          groupName=this.state.moderators_group_name
+                        }}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="btn btn-primary"
+                      {{on "click" this.markPmMessageClicked}}
+                    >
+                      {{i18n "onboarding_guide.flagging.pm_message_button"}}
+                    </button>
+                  </div>
+
+                  <div class="onboarding-guide-group-card__body">
+                    {{#if this.pmMessageClicked}}
+                      <div class="onboarding-guide-group-card__done">
+                        {{i18n "onboarding_guide.flagging.pm_completed"}}
+                      </div>
+                    {{/if}}
+                  </div>
+                </div>
+              {{/if}}
             </div>
           {{else if (eq this.activeStep "username")}}
             <p>{{i18n "onboarding_guide.username.helper"}}</p>
@@ -340,25 +485,42 @@ export default class OnboardingGuideRoot extends Component {
 
         <:footer>
           <div class="onboarding-guide-footer">
-            <button
-              type="button"
-              class="btn btn-default"
-              {{on "click" this.closeForNow}}
-            >
-              {{i18n "onboarding_guide.close_for_now"}}
-            </button>
-            <button
-              type="button"
-              class="btn btn-primary"
-              disabled={{if this.canContinue false true}}
-              {{on "click" this.continue}}
-            >
-              {{#if this.isLastStep}}
-                {{i18n "onboarding_guide.finish"}}
-              {{else}}
-                {{i18n "onboarding_guide.next"}}
+            <div class="onboarding-guide-footer__left">
+              {{#if this.continueHint}}
+                <span class="onboarding-guide-footer__hint">
+                  {{this.continueHint}}
+                </span>
               {{/if}}
-            </button>
+              <button
+                type="button"
+                class="btn btn-default"
+                {{on "click" this.closeForNow}}
+              >
+                {{i18n "onboarding_guide.close_for_now"}}
+              </button>
+            </div>
+            <div class="onboarding-guide-footer__right">
+              <button
+                type="button"
+                class="btn btn-default"
+                disabled={{this.isFirstStep}}
+                {{on "click" this.previous}}
+              >
+                {{i18n "onboarding_guide.previous"}}
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                disabled={{if this.canContinue false true}}
+                {{on "click" this.continue}}
+              >
+                {{#if this.isLastStep}}
+                  {{i18n "onboarding_guide.finish"}}
+                {{else}}
+                  {{i18n "onboarding_guide.next"}}
+                {{/if}}
+              </button>
+            </div>
           </div>
         </:footer>
       </DModal>

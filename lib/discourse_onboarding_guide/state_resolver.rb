@@ -73,7 +73,19 @@ module ::DiscourseOnboardingGuide
       def progress_for(user)
         raw = user.custom_fields[DiscourseOnboardingGuide::PROGRESS_FIELD]
         parsed = raw.is_a?(Hash) ? raw : JSON.parse(raw || "{}")
-        parsed.is_a?(Hash) ? parsed.slice(*STEP_KEYS, "current_step") : {}
+        return {} unless parsed.is_a?(Hash)
+
+        boolean_type = ActiveModel::Type::Boolean.new
+        progress = parsed.slice(*STEP_KEYS, "current_step", "version")
+        return {} if progress["version"].to_i != current_version
+
+        progress.tap do
+          STEP_KEYS.each do |step|
+            next unless progress.key?(step)
+
+            progress[step] = boolean_type.cast(progress[step])
+          end
+        end
       rescue JSON::ParserError
         {}
       end

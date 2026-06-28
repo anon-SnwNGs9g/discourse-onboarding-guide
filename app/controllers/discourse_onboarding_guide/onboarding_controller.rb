@@ -42,11 +42,24 @@ module ::DiscourseOnboardingGuide
     private
 
     def progress_params
-      params.require(:progress).permit(*StateResolver::STEP_KEYS, :current_step)
+      raw_progress = params.require(:progress).permit(*StateResolver::STEP_KEYS, :current_step, :version)
+      boolean_type = ActiveModel::Type::Boolean.new
+
+      raw_progress.to_h.tap do |progress|
+        StateResolver::STEP_KEYS.each do |step|
+          next unless progress.key?(step)
+
+          progress[step] = boolean_type.cast(progress[step])
+        end
+      end
     end
 
     def preference_items_params
-      params.require(:items).map do |item|
+      raw_items = params.require(:items)
+      raw_items = raw_items.to_unsafe_h.values if raw_items.is_a?(ActionController::Parameters)
+
+      Array.wrap(raw_items).map do |item|
+        item = item.to_unsafe_h if item.is_a?(ActionController::Parameters)
         ActionController::Parameters.new(item).permit(:id, :type, :state).to_h.symbolize_keys
       end
     end
