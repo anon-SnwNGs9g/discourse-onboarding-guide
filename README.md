@@ -10,5 +10,5 @@ Discourse plugin for onboarding newly registered users and users who join config
 - Pledge agreement step
 - Notification preference selection (inline picker)
 - Moderator PM demo step
-- Tutorials step
+- Tutorials step with category slug validation
 - Persistent reopen bubble

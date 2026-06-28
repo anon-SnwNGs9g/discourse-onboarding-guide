@@ -9,6 +9,8 @@ plugins:
     type: group_list
   onboarding_guide_tutorial_category_slug:
     default: "tutorial"
+    client: true
+    validator: "::DiscourseOnboardingGuide::TutorialCategoryValidator"
   onboarding_guide_preference_strategy:
     default: "inline_picker"
     type: enum
