@@ -10,7 +10,7 @@ Discourse plugin for onboarding newly registered users and users who join config
 - Pledge agreement step
 - Grouped preference items with summary headers
 - Moderator PM demo step
-- Tutorials step with category slug validation
+- Tutorials step with category badge and slug validation
 - Progress dots navigation
 - Frontend-computed state (progress, pledges)
 - Profile button to reopen guide

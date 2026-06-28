@@ -1,7 +1,7 @@
 import Component from "@glimmer/component";
 import { concat, fn, get } from "@ember/helper";
-import dReplaceEmoji from "discourse/ui-kit/helpers/d-replace-emoji";
 import { on } from "@ember/modifier";
+import OnboardingGuideCategoryBadge from "./onboarding-guide-category-badge";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { tracked } from "@glimmer/tracking";
@@ -89,6 +89,12 @@ export default class OnboardingGuideRoot extends Component {
 
   get flatPreferenceItems() {
     return (this.state?.preference_items || []).flatMap((g) => g.items);
+  }
+
+  @action
+  preferenceItemCategory(item) {
+    if (item.type !== "category") return null;
+    return this.site.categories?.find((c) => c.slug === item.key);
   }
 
   get canContinue() {
@@ -403,6 +409,13 @@ export default class OnboardingGuideRoot extends Component {
     this.activeStep = step;
   }
 
+  @action
+  preferenceItemUrl(item) {
+    return item.type === "category"
+      ? `/c/${item.key}/${item.id}`
+      : `/tag/${item.key}`;
+  }
+
   <template>
     {{#if this.showBubble}}
       <button
@@ -586,7 +599,22 @@ export default class OnboardingGuideRoot extends Component {
                 <div class="onboarding-guide-preference-group__summary">{{group.summary}}</div>
                 {{#each group.items as |item|}}
                   <div class="onboarding-guide-preference-item">
-                    <div class="onboarding-guide-preference-label">{{item.label}}</div>
+                    <div class="onboarding-guide-preference-label">
+                      {{#if (eq item.type "category")}}
+                        {{#let (this.preferenceItemCategory item) as |cat|}}
+                          {{#if cat}}
+                            <a href={{this.preferenceItemUrl item}} class="hashtag-cooked" {{on "click" (fn this.openUrl (this.preferenceItemUrl item))}}>
+                              <OnboardingGuideCategoryBadge @category={{cat}} />
+                              <span>{{item.label}}</span>
+                            </a>
+                          {{else}}
+                            <span>{{item.label}}</span>
+                          {{/if}}
+                        {{/let}}
+                      {{else}}
+                        <a href={{this.preferenceItemUrl item}} class="hashtag-cooked" {{on "click" (fn this.openUrl (this.preferenceItemUrl item))}}>{{dIcon "tag"}}<span>{{item.label}}</span></a>
+                      {{/if}}
+                    </div>
                     <div class="onboarding-guide-preference-options">
                       {{#each this.notificationStates as |state|}}
                         <button
@@ -611,13 +639,7 @@ export default class OnboardingGuideRoot extends Component {
                   class="hashtag-cooked"
                   {{on "click" (fn this.openUrl this.state.tutorial_category.url)}}
                 >
-                  {{#if this.siteCategory.icon}}
-                    <span class="hashtag-category-icon hashtag-color--category-{{this.state.tutorial_category.id}}">{{dIcon this.siteCategory.icon}}</span>
-                  {{else if this.siteCategory.emoji}}
-                    <span class="hashtag-category-emoji hashtag-color--category-{{this.state.tutorial_category.id}}">{{dReplaceEmoji (concat ":" this.siteCategory.emoji ":")}}</span>
-                  {{else}}
-                    <span class="hashtag-category-square hashtag-color--category-{{this.state.tutorial_category.id}}"></span>
-                  {{/if}}
+                  <OnboardingGuideCategoryBadge @category={{this.siteCategory}} />
                   <span>{{this.state.tutorial_category.name}}</span>
                 </a>
                 {{i18n "onboarding_guide.tutorials.helper_suffix"}}
