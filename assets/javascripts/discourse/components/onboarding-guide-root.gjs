@@ -191,6 +191,12 @@ export default class OnboardingGuideRoot extends Component {
         this.forceOpen = true;
         this.showModal = true;
         this.activeStep = this.steps[0];
+      } else if (
+        this.state.required &&
+        this.state.completed_version < this.state.current_version
+      ) {
+        sessionStorage.removeItem(STORAGE_KEY);
+        this.showModal = true;
       } else {
         this.showModal =
           this.state.required && sessionStorage.getItem(STORAGE_KEY) !== "1";
@@ -464,10 +470,10 @@ export default class OnboardingGuideRoot extends Component {
 
           {{#if (eq this.activeStep "pledges")}}
             <div class="onboarding-guide-links">
-              <a href="/guidelines" target="_blank" rel="noopener noreferrer">
+              <a href="/guidelines" {{on "click" (fn this.openUrl "/guidelines")}}>
                 {{i18n "onboarding_guide.pledges.guidelines"}}
               </a>
-              <a href="/tos" target="_blank" rel="noopener noreferrer">
+              <a href="/tos" {{on "click" (fn this.openUrl "/tos")}}>
                 {{i18n "onboarding_guide.pledges.tos"}}
               </a>
             </div>
