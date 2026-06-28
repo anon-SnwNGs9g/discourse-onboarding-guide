@@ -13,14 +13,74 @@
 .onboarding-guide-modal {
   .onboarding-guide-progress {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    font-size: var(--font-down-1);
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 1.25rem;
+    padding: 0.5rem 0;
   }
 
-  .onboarding-guide-progress .is-active {
+  .onboarding-guide-progress__item {
+    display: flex;
+    align-items: center;
+  }
+
+  .onboarding-guide-progress__item::after {
+    content: "";
+    width: 2.5rem;
+    height: 2px;
+    background: var(--primary-low-mid);
+    display: inline-block;
+  }
+
+  .onboarding-guide-progress__item:last-child::after {
+    display: none;
+  }
+
+  .onboarding-guide-progress__item.is-completed::after {
+    background: var(--success);
+  }
+
+  .onboarding-guide-progress__dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-down-1);
     font-weight: 700;
+    border: 2px solid var(--primary-low-mid);
+    background: var(--secondary);
+    color: var(--primary-medium);
+    transition: all 0.2s ease;
+  }
+
+  .onboarding-guide-progress__item.is-completed .onboarding-guide-progress__dot {
+    border-color: var(--success);
+    background: var(--success);
+    color: var(--secondary-very-high);
+  }
+
+  .onboarding-guide-progress__item.is-completed.is-active .onboarding-guide-progress__dot {
+    border-color: var(--tertiary);
+    background: var(--tertiary);
+    color: var(--secondary-very-high);
+  }
+
+  .onboarding-guide-progress__item.is-clickable {
+    cursor: pointer;
+  }
+
+  .onboarding-guide-progress__item.is-clickable:hover .onboarding-guide-progress__dot {
+    transform: scale(1.2);
+    box-shadow: 0 0 0 3px var(--primary-very-low);
+  }
+
+  .onboarding-guide-progress__item.is-active .onboarding-guide-progress__dot {
+    border-color: var(--tertiary);
+    background: var(--tertiary);
+    color: var(--secondary-very-high);
   }
 
   .onboarding-guide-links {
@@ -253,13 +313,28 @@
     }
   }
 
+  .onboarding-guide-preference-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .onboarding-guide-preference-group__summary {
+    font-weight: 700;
+    font-size: var(--font-up-1);
+    padding: 0.5rem 0 0.25rem;
+  }
+
   .onboarding-guide-preference-item {
-    padding: 0.75rem 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding: 0.6rem 0;
     border-top: 1px solid var(--primary-low);
   }
 
   .onboarding-guide-preference-label {
-    margin-bottom: 0.5rem;
+    min-width: 7rem;
+    flex-shrink: 0;
     font-weight: 700;
   }
 
@@ -279,11 +354,6 @@
   .onboarding-guide-preference-options .is-selected {
     background: var(--tertiary);
     color: var(--secondary-very-high);
-  }
-
-  .onboarding-guide-topics {
-    margin-top: 1rem;
-    padding-left: 1.25rem;
   }
 
   .onboarding-guide-footer {

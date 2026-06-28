@@ -5,8 +5,8 @@ module ::DiscourseOnboardingGuide
     requires_plugin PLUGIN_NAME
     requires_login
 
-    def show
-      render_json_dump(StateResolver.state_for(current_user))
+    def preference_items
+      render json: { items: StateResolver.preference_items_for(current_user) }
     end
 
     def progress

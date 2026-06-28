@@ -2,11 +2,12 @@ en:
   js:
     onboarding_guide:
       title: "Welcome"
-      reopen: "Finish guide"
+      reopen: "Continue tutorial"
       close_for_now: "Close for now"
       previous: "Previous"
       next: "Next"
       finish: "Finish"
+      profile_button: "Restart tutorial"
       loading: "Loading"
       steps:
         pledges: "Read the rules"
@@ -58,4 +59,5 @@ en:
         muted: "Muted"
       tutorials:
         helper: "Read the tutorials category to learn the basics."
-        open_category: "Open tutorials"
+        helper_prefix: "Read the "
+        helper_suffix: " category to learn the basics."

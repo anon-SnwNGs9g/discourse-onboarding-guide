@@ -2,11 +2,12 @@ zh_CN:
   js:
     onboarding_guide:
       title: "欢迎"
-      reopen: "完成引导"
+      reopen: "继续引导教程"
       close_for_now: "稍后再说"
       previous: "上一步"
       next: "下一步"
       finish: "完成"
+      profile_button: "重新查看引导教程"
       loading: "加载中"
       steps:
         pledges: "阅读规则"
@@ -58,4 +59,5 @@ zh_CN:
         muted: "屏蔽"
       tutorials:
         helper: "建议先阅读教程分类，熟悉站点的基本用法。"
-        open_category: "打开教程分类"
+        helper_prefix: "建议先阅读"
+        helper_suffix: "，熟悉站点的基本用法。"

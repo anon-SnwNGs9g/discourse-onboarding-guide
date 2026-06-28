@@ -6,7 +6,7 @@ module ::DiscourseOnboardingGuide
 
     class << self
       def update!(user, items)
-        allowed_items = StateResolver.preference_items_for(user).index_by { |item| "#{item[:type]}:#{item[:id]}" }
+        allowed_items = StateResolver.flat_preference_items_for(user).index_by { |item| "#{item[:type]}:#{item[:id]}" }
 
         items.each do |item|
           type = item[:type].to_s

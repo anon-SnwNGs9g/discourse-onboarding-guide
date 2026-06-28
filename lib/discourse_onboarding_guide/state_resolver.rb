@@ -9,65 +9,41 @@ module ::DiscourseOnboardingGuide
         SiteSetting.onboarding_guide_enabled && assigned?(user) && completed_version(user) < current_version
       end
 
-      def state_for(user)
-        tutorial = tutorial_category
-        {
-          required: required_for?(user),
-          current_version: current_version,
-          completed_version: completed_version(user),
-          assigned: assigned?(user),
-          strategy: SiteSetting.onboarding_guide_preference_strategy,
-          progress: progress_for(user),
-          pledges: pledges,
-          tutorial_category: tutorial && { id: tutorial.id, name: tutorial.name, slug: tutorial.slug, url: "/c/#{tutorial.slug}/#{tutorial.id}" },
-          tutorial_topics: tutorial_topics_for(tutorial),
-          preference_items: preference_items_for(user),
-          moderators_group_name: Group[:moderators].name,
-        }
-      end
-
-      def tutorial_category
-        Category.find_by(slug: SiteSetting.onboarding_guide_tutorial_category_slug)
-      end
-
-      def tutorial_topics_for(tutorial)
-        return [] unless tutorial
-
-        Topic
-          .where(category_id: tutorial.id, deleted_at: nil, visible: true)
-          .order(bumped_at: :desc)
-          .limit(5)
-          .map do |topic|
-          { id: topic.id, title: topic.title, url: topic.relative_url }
-        end
-      end
-
       def preference_items_for(user)
-        parsed_preference_items.filter_map do |item|
-          if item["type"] == "category"
-            category = Category.find_by(slug: item["slug"])
-            next if category.blank? || !Guardian.new(user).can_see_category?(category)
+        parsed_preference_items.filter_map do |group|
+          items = group["items"].filter_map do |item|
+            if item["type"] == "category"
+              category = Category.find_by(slug: item["slug"])
+              next if category.blank? || !Guardian.new(user).can_see_category?(category)
 
-            {
-              id: category.id,
-              type: "category",
-              key: category.slug,
-              label: item["label"].presence || category.name,
-              state: category_state_for(user, category.id),
-            }
-          else
-            tag = Tag.find_by_name(item["name"])
-            next if tag.blank?
+              {
+                id: category.id,
+                type: "category",
+                key: category.slug,
+                label: item["label"].presence || category.name,
+                state: category_state_for(user, category.id),
+              }
+            else
+              tag = Tag.find_by_name(item["name"])
+              next if tag.blank?
 
-            {
-              id: tag.id,
-              type: "tag",
-              key: tag.name,
-              label: item["label"].presence || tag.name,
-              state: tag_state_for(user, tag.id),
-            }
+              {
+                id: tag.id,
+                type: "tag",
+                key: tag.name,
+                label: item["label"].presence || tag.name,
+                state: tag_state_for(user, tag.id),
+              }
+            end
           end
+          next if items.empty?
+
+          { summary: group["summary"], items: items }
         end
+      end
+
+      def flat_preference_items_for(user)
+        preference_items_for(user).flat_map { |group| group[:items] }
       end
 
       def progress_for(user)
@@ -100,12 +76,6 @@ module ::DiscourseOnboardingGuide
 
       def assigned?(user)
         user.custom_fields[DiscourseOnboardingGuide::ASSIGNED_VERSION_FIELD].to_i > 0
-      end
-
-      def pledges
-        JSON.parse(SiteSetting.onboarding_guide_pledges_json)
-      rescue JSON::ParserError
-        []
       end
 
       private

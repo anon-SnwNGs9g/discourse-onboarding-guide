@@ -62,7 +62,7 @@ after_initialize do
   end
 
   Discourse::Application.routes.append do
-    get "/onboarding-guide/state" => "discourse_onboarding_guide/onboarding#show"
+    get "/onboarding-guide/preference-items" => "discourse_onboarding_guide/onboarding#preference_items"
     post "/onboarding-guide/progress" => "discourse_onboarding_guide/onboarding#progress"
     post "/onboarding-guide/preferences" => "discourse_onboarding_guide/onboarding#preferences"
     post "/onboarding-guide/complete" => "discourse_onboarding_guide/onboarding#complete"

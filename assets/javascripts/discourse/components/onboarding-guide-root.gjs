@@ -1,5 +1,6 @@
 import Component from "@glimmer/component";
 import { concat, fn, get } from "@ember/helper";
+import dReplaceEmoji from "discourse/ui-kit/helpers/d-replace-emoji";
 import { on } from "@ember/modifier";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
@@ -24,6 +25,7 @@ const NOTIFICATION_STATES = [
 
 export default class OnboardingGuideRoot extends Component {
   @service currentUser;
+  @service site;
   @service siteSettings;
 
   @tracked state = null;
@@ -36,6 +38,7 @@ export default class OnboardingGuideRoot extends Component {
   @tracked pmMoreOpen = false;
   @tracked pmGroupsOpen = false;
   @tracked pmMessageClicked = false;
+  @tracked forceOpen = false;
 
   constructor() {
     super(...arguments);
@@ -43,7 +46,7 @@ export default class OnboardingGuideRoot extends Component {
   }
 
   get shouldRender() {
-    return this.currentUser && this.state?.required;
+    return this.currentUser && (this.state?.required || this.forceOpen);
   }
 
   get showBubble() {
@@ -66,11 +69,32 @@ export default class OnboardingGuideRoot extends Component {
     return this.steps.indexOf(this.activeStep);
   }
 
+  get clickableSteps() {
+    if (!this.state?.progress) return [this.steps[0]];
+    const firstUncompleted = this.steps.find(
+      (step) => !this.state.progress[step],
+    );
+    return firstUncompleted
+      ? this.steps.slice(0, this.steps.indexOf(firstUncompleted) + 1)
+      : this.steps;
+  }
+
   get currentStepLabel() {
     return this.stepLabel(this.activeStep);
   }
 
+  get siteCategory() {
+    return this.site.categories?.find((c) => c.slug === this.state?.tutorial_category?.slug);
+  }
+
+  get flatPreferenceItems() {
+    return (this.state?.preference_items || []).flatMap((g) => g.items);
+  }
+
   get canContinue() {
+    if (this.state?.progress?.[this.activeStep]) {
+      return true;
+    }
     switch (this.activeStep) {
       case "pledges":
         return (this.state?.pledges || []).every(
@@ -84,8 +108,13 @@ export default class OnboardingGuideRoot extends Component {
   }
 
   get continueHint() {
-    if (this.activeStep === "flagging" && !this.canContinue) {
-      return i18n("onboarding_guide.flagging.continue_hint");
+    if (!this.canContinue) {
+      if (this.activeStep === "flagging") {
+        return i18n("onboarding_guide.flagging.continue_hint");
+      }
+      if (this.activeStep === "pledges") {
+        return i18n("onboarding_guide.pledges.helper");
+      }
     }
   }
 
@@ -103,21 +132,92 @@ export default class OnboardingGuideRoot extends Component {
     }
 
     try {
-      this.state = await ajax("/onboarding-guide/state.json");
+      const prefData = await ajax("/onboarding-guide/preference-items");
+      const progress = this.parseProgress();
+      const catSlug = this.siteSettings.onboarding_guide_tutorial_category_slug;
+      const cat = catSlug
+        ? this.site.categories?.find((c) => c.slug === catSlug)
+        : null;
+
+      this.state = {
+        required: this.currentUser.onboarding_guide_required,
+        current_version: this.siteSettings.onboarding_guide_version,
+        completed_version: parseInt(
+          this.currentUser.custom_fields?.onboarding_guide_completed_version || "0",
+        ),
+        assigned:
+          parseInt(
+            this.currentUser.custom_fields?.onboarding_guide_assigned_version || "0",
+          ) > 0,
+        strategy: this.siteSettings.onboarding_guide_preference_strategy,
+        progress,
+        pledges: this.parsePledges(),
+        tutorial_category: cat
+          ? {
+              id: cat.id,
+              name: cat.name,
+              slug: cat.slug,
+              url: `/c/${cat.slug}/${cat.id}`,
+            }
+          : null,
+        preference_items: prefData.items,
+        moderators_group_name: "moderators",
+      };
+
       this.activeStep =
-        this.state.progress?.current_step ||
-        this.steps.find((step) => !this.state.progress?.[step]) ||
+        progress.current_step ||
+        this.steps.find((step) => !progress[step]) ||
         "pledges";
+
       this.selectedPreferences = Object.fromEntries(
-        (this.state.preference_items || []).map((item) => [
+        this.flatPreferenceItems.map((item) => [
           this.preferenceKey(item),
           item.state,
         ])
       );
-      this.showModal =
-        this.state.required && sessionStorage.getItem(STORAGE_KEY) !== "1";
+
+      if (sessionStorage.getItem("discourse-onboarding-guide-force-open") === "1") {
+        sessionStorage.removeItem("discourse-onboarding-guide-force-open");
+        this.forceOpen = true;
+        this.showModal = true;
+        this.activeStep = this.steps[0];
+      } else {
+        this.showModal =
+          this.state.required && sessionStorage.getItem(STORAGE_KEY) !== "1";
+      }
     } catch (error) {
       popupAjaxError(error);
+    }
+  }
+
+  parseProgress() {
+    try {
+      const raw = this.currentUser.custom_fields?.onboarding_guide_progress;
+      const parsed = typeof raw === "object" ? raw : JSON.parse(raw || "{}");
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+        return {};
+      }
+      if (
+        parseInt(parsed.version, 10) !==
+        this.siteSettings.onboarding_guide_version
+      ) {
+        return {};
+      }
+      return Object.fromEntries(
+        Object.entries(parsed).filter(([k]) =>
+          [...this.steps, "current_step", "version"].includes(k),
+        ),
+      );
+    } catch {
+      return {};
+    }
+  }
+
+  parsePledges() {
+    try {
+      return JSON.parse(this.siteSettings.onboarding_guide_pledges_json);
+    } catch {
+      return [];
     }
   }
 
@@ -182,6 +282,7 @@ export default class OnboardingGuideRoot extends Component {
   @action
   closeForNow() {
     this.showModal = false;
+    this.forceOpen = false;
     sessionStorage.setItem(STORAGE_KEY, "1");
   }
 
@@ -192,7 +293,10 @@ export default class OnboardingGuideRoot extends Component {
   }
 
   @action
-  openUrl(url) {
+  openUrl(url, event) {
+    event?.preventDefault();
+    this.showModal = false;
+    sessionStorage.setItem(STORAGE_KEY, "1");
     window.location.href = url;
   }
 
@@ -221,7 +325,7 @@ export default class OnboardingGuideRoot extends Component {
         await ajax("/onboarding-guide/preferences", {
           method: "POST",
           data: {
-            items: (this.state.preference_items || []).map((item) => ({
+            items: this.flatPreferenceItems.map((item) => ({
               id: item.id,
               type: item.type,
               state: this.selectedState(item) || "regular",
@@ -273,7 +377,6 @@ export default class OnboardingGuideRoot extends Component {
       version: this.state.current_version,
       current_step: previousStep,
     };
-
     try {
       await ajax("/onboarding-guide/progress", {
         method: "POST",
@@ -285,6 +388,19 @@ export default class OnboardingGuideRoot extends Component {
     } catch (error) {
       popupAjaxError(error);
     }
+  }
+
+  @action
+  isStepClickable(step) {
+    return this.clickableSteps.includes(step);
+  }
+
+  @action
+  jumpToStep(step) {
+    if (!this.clickableSteps.includes(step) || step === this.activeStep) {
+      return;
+    }
+    this.activeStep = step;
   }
 
   <template>
@@ -307,9 +423,24 @@ export default class OnboardingGuideRoot extends Component {
         <:body>
           <div class="onboarding-guide-progress">
             {{#each this.steps as |step|}}
-              <span class={{if (eq step this.activeStep) "is-active" ""}}>
-                {{this.stepLabel step}}
-              </span>
+              <div
+                class="onboarding-guide-progress__item
+                  {{if (eq step this.activeStep) "is-active"}}
+                  {{if (get this.state.progress step) "is-completed"}}
+                  {{if (this.isStepClickable step) "is-clickable"}}"
+                role={{if (this.isStepClickable step) "button"}}
+                {{on "click" (fn this.jumpToStep step)}}
+              >
+                <div
+                  class="onboarding-guide-progress__dot"
+                  title={{this.stepLabel step}}
+                  aria-label={{this.stepLabel step}}
+                >
+                  {{#if (get this.state.progress step)}}
+                    {{dIcon "check"}}
+                  {{/if}}
+                </div>
+              </div>
             {{/each}}
           </div>
 
@@ -322,7 +453,6 @@ export default class OnboardingGuideRoot extends Component {
                 {{i18n "onboarding_guide.pledges.tos"}}
               </a>
             </div>
-            <p>{{i18n "onboarding_guide.pledges.helper"}}</p>
             {{#each this.state.pledges as |pledge index|}}
               <label class="onboarding-guide-field">
                 <span>{{pledge}}</span>
@@ -451,46 +581,56 @@ export default class OnboardingGuideRoot extends Component {
             />
           {{else if (eq this.activeStep "preferences")}}
             <p>{{i18n "onboarding_guide.preferences.helper"}}</p>
-            {{#each this.state.preference_items as |item|}}
-              <div class="onboarding-guide-preference-item">
-                <div class="onboarding-guide-preference-label">{{item.label}}</div>
-                <div class="onboarding-guide-preference-options">
-                  {{#each this.notificationStates as |state|}}
-                    <button
-                      type="button"
-                      class={{if (eq (this.selectedState item) state) "is-selected" ""}}
-                      {{on "click" (fn this.choosePreference item state)}}
-                    >
-                      {{i18n (concat "onboarding_guide.preferences." state)}}
-                    </button>
-                  {{/each}}
-                </div>
+            {{#each this.state.preference_items as |group|}}
+              <div class="onboarding-guide-preference-group">
+                <div class="onboarding-guide-preference-group__summary">{{group.summary}}</div>
+                {{#each group.items as |item|}}
+                  <div class="onboarding-guide-preference-item">
+                    <div class="onboarding-guide-preference-label">{{item.label}}</div>
+                    <div class="onboarding-guide-preference-options">
+                      {{#each this.notificationStates as |state|}}
+                        <button
+                          type="button"
+                          class={{if (eq (this.selectedState item) state) "is-selected" ""}}
+                          {{on "click" (fn this.choosePreference item state)}}
+                        >
+                          {{i18n (concat "onboarding_guide.preferences." state)}}
+                        </button>
+                      {{/each}}
+                    </div>
+                  </div>
+                {{/each}}
               </div>
             {{/each}}
           {{else}}
-            <p>{{i18n "onboarding_guide.tutorials.helper"}}</p>
             {{#if this.state.tutorial_category}}
-              <DButton
-                @label="onboarding_guide.tutorials.open_category"
-                @action={{fn this.openUrl this.state.tutorial_category.url}}
-              />
+              <p>
+                {{i18n "onboarding_guide.tutorials.helper_prefix"}}
+                <a
+                  href={{this.state.tutorial_category.url}}
+                  class="hashtag-cooked"
+                  {{on "click" (fn this.openUrl this.state.tutorial_category.url)}}
+                >
+                  {{#if this.siteCategory.icon}}
+                    <span class="hashtag-category-icon hashtag-color--category-{{this.state.tutorial_category.id}}">{{dIcon this.siteCategory.icon}}</span>
+                  {{else if this.siteCategory.emoji}}
+                    <span class="hashtag-category-emoji hashtag-color--category-{{this.state.tutorial_category.id}}">{{dReplaceEmoji (concat ":" this.siteCategory.emoji ":")}}</span>
+                  {{else}}
+                    <span class="hashtag-category-square hashtag-color--category-{{this.state.tutorial_category.id}}"></span>
+                  {{/if}}
+                  <span>{{this.state.tutorial_category.name}}</span>
+                </a>
+                {{i18n "onboarding_guide.tutorials.helper_suffix"}}
+              </p>
+            {{else}}
+              <p>{{i18n "onboarding_guide.tutorials.helper"}}</p>
             {{/if}}
-            <ul class="onboarding-guide-topics">
-              {{#each this.state.tutorial_topics as |topic|}}
-                <li><a href={{topic.url}}>{{topic.title}}</a></li>
-              {{/each}}
-            </ul>
           {{/if}}
         </:body>
 
         <:footer>
           <div class="onboarding-guide-footer">
             <div class="onboarding-guide-footer__left">
-              {{#if this.continueHint}}
-                <span class="onboarding-guide-footer__hint">
-                  {{this.continueHint}}
-                </span>
-              {{/if}}
               <button
                 type="button"
                 class="btn btn-default"
@@ -500,6 +640,11 @@ export default class OnboardingGuideRoot extends Component {
               </button>
             </div>
             <div class="onboarding-guide-footer__right">
+              {{#if this.continueHint}}
+                <span class="onboarding-guide-footer__hint">
+                  {{this.continueHint}}
+                </span>
+              {{/if}}
               <button
                 type="button"
                 class="btn btn-default"

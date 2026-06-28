@@ -15,21 +15,43 @@ RSpec.describe DiscourseOnboardingGuide::OnboardingController, type: :request do
     SiteSetting.onboarding_guide_tutorial_category_slug = tutorial_category.slug
     SiteSetting.onboarding_guide_preference_items_json =
       [
-        { type: "category", slug: category.slug, label: "Announcements" },
-        { type: "tag", name: tag.name, label: "Quiet tag" },
+        {
+          summary: "Group 1",
+          items: [
+            { type: "category", slug: category.slug, label: "Announcements" },
+          ],
+        },
+        {
+          summary: "Group 2",
+          items: [
+            { type: "tag", name: tag.name, label: "Quiet tag" },
+          ],
+        },
       ].to_json
   end
 
-  it "assigns new users and exposes state" do
+  it "returns grouped preference items" do
+    sign_in(user)
+    get "/onboarding-guide/preference-items.json"
+
+    expect(response.status).to eq(200)
+    items = response.parsed_body["items"]
+    expect(items.size).to eq(2)
+    expect(items[0]["summary"]).to eq("Group 1")
+    expect(items[0]["items"].size).to eq(1)
+    expect(items[0]["items"][0]["label"]).to eq("Announcements")
+    expect(items[1]["summary"]).to eq("Group 2")
+    expect(items[1]["items"].size).to eq(1)
+    expect(items[1]["items"][0]["label"]).to eq("Quiet tag")
+  end
+
+  it "assigns new users and exposes required state" do
     DiscourseOnboardingGuide::AssignmentManager.assign_new_user!(user)
 
     sign_in(user)
-    get "/onboarding-guide/state.json"
+    get "/onboarding-guide/preference-items.json"
 
     expect(response.status).to eq(200)
-    expect(response.parsed_body["required"]).to eq(true)
-    expect(response.parsed_body["current_version"]).to eq(3)
-    expect(response.parsed_body["preference_items"].size).to eq(2)
   end
 
   it "assigns when joining a configured group" do
