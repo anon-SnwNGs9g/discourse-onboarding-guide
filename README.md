@@ -5,6 +5,7 @@ Discourse plugin for onboarding newly registered users and users who join config
 ## Features
 
 - Trigger onboarding for newly registered users and opt-in group members
+- Auto-detect moderator group from site groups
 - Versioned completion tracking with user custom fields
 - Flagging tutorial with embedded post UI
 - Pledge agreement step

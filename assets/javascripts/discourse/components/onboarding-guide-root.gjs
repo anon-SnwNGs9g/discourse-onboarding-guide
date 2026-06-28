@@ -12,6 +12,7 @@ import DButton from "discourse/ui-kit/d-button";
 import DModal from "discourse/ui-kit/d-modal";
 import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
+import { AUTO_GROUPS } from "discourse/lib/constants";
 import { i18n } from "discourse-i18n";
 
 const STORAGE_KEY = "discourse-onboarding-guide-dismissed-session";
@@ -91,6 +92,10 @@ export default class OnboardingGuideRoot extends Component {
     return (this.state?.preference_items || []).flatMap((g) => g.items);
   }
 
+  get moderatorsGroupName() {
+    return this.site.groups?.find((g) => g.id === AUTO_GROUPS.moderators.id)?.name || "moderators";
+  }
+
   @action
   preferenceItemCategory(item) {
     if (item.type !== "category") return null;
@@ -167,7 +172,6 @@ export default class OnboardingGuideRoot extends Component {
             }
           : null,
         preference_items: prefData.items,
-        moderators_group_name: "moderators",
       };
 
       this.activeStep =
@@ -301,6 +305,7 @@ export default class OnboardingGuideRoot extends Component {
   @action
   openUrl(url, event) {
     event?.preventDefault();
+    event?.stopPropagation();
     this.showModal = false;
     sessionStorage.setItem(STORAGE_KEY, "1");
     window.location.href = url;
@@ -481,10 +486,9 @@ export default class OnboardingGuideRoot extends Component {
             <OnboardingGuideSamplePost @onFlag={{this.markSampleFlagged}} />
             <div class="onboarding-guide-flagging-alt">
               <p>
-                {{i18n
-                  "onboarding_guide.flagging.pm_helper"
-                  groupName=this.state.moderators_group_name
-                }}
+                {{i18n "onboarding_guide.flagging.pm_helper_before"}}
+                <a href="/g/{{this.moderatorsGroupName}}" class="mention-group" {{on "click" (fn this.openUrl (concat "/g/" this.moderatorsGroupName))}}>@{{this.moderatorsGroupName}}</a>
+                {{i18n "onboarding_guide.flagging.pm_helper_after"}}
               </p>
               <ol class="onboarding-guide-flagging-steps">
                 <li>{{i18n "onboarding_guide.flagging.pm_step_one"}}</li>
@@ -492,13 +496,13 @@ export default class OnboardingGuideRoot extends Component {
                 <li>
                   {{i18n
                     "onboarding_guide.flagging.pm_step_three"
-                    groupName=this.state.moderators_group_name
+                    groupName=this.moderatorsGroupName
                   }}
                 </li>
                 <li>
                   {{i18n
                     "onboarding_guide.flagging.pm_step_four"
-                    groupName=this.state.moderators_group_name
+                    groupName=this.moderatorsGroupName
                   }}
                 </li>
               </ol>
@@ -563,7 +567,7 @@ export default class OnboardingGuideRoot extends Component {
                       <div class="onboarding-guide-group-card__subtitle">
                         {{i18n
                           "onboarding_guide.flagging.pm_group_hint"
-                          groupName=this.state.moderators_group_name
+                          groupName=this.moderatorsGroupName
                         }}
                       </div>
                     </div>
