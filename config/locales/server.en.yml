@@ -1,0 +1,9 @@
+en:
+  site_settings:
+    onboarding_guide_enabled: "Enable onboarding guide"
+    onboarding_guide_version: "Current onboarding guide version"
+    onboarding_guide_target_groups: "Groups that trigger onboarding when a user joins them"
+    onboarding_guide_tutorial_category_slug: "Tutorial category slug"
+    onboarding_guide_preference_strategy: "Preference strategy"
+    onboarding_guide_pledges_json: "Pledge prompts JSON"
+    onboarding_guide_preference_items_json: "Preference items JSON"

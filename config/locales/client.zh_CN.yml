@@ -1,0 +1,45 @@
+zh_CN:
+  js:
+    onboarding_guide:
+      title: "欢迎"
+      reopen: "完成引导"
+      close_for_now: "稍后再说"
+      next: "下一步"
+      finish: "完成"
+      loading: "加载中"
+      steps:
+        pledges: "阅读规则"
+        flagging: "举报违规内容"
+        username: "保护隐私"
+        preferences: "调整信息流"
+        tutorials: "阅读教程"
+      pledges:
+        guidelines: "阅读社区规范"
+        tos: "阅读服务条款"
+        helper: "请逐字输入下面的句子后再继续。"
+      flagging:
+        helper: "平时遇到违规内容时，可以先点帖子底部的 ...，再点旗帜按钮举报。请先在下面的示例帖里做一次演示。"
+        pm_helper: "如果你当前账号不能举报，或者需要补充说明，可以给 @%{groupName} 发私信。重点是记住平时的入口位置。"
+        pm_step_one: "点击右上角个人头像菜单，进入消息。"
+        pm_step_two: "点击“新消息”发起私信。"
+        pm_step_three: "收件人填写 @%{groupName}，再说明你遇到的问题。"
+        pm_to_label: "收件人"
+        pm_title_label: "标题"
+        pm_title_example: "想反馈一条违规内容"
+        pm_body_example: "请附上相关帖子链接，并说明哪里有问题，方便版主处理。"
+        sample_body: "这条示例帖子用于演示帖子底部的举报入口位置。"
+        sample_username: "示例用户"
+        sample_name: "示例用户"
+        completed: "已完成举报操作演示。"
+      username:
+        helper: "如果你比较在意隐私，可以到账号偏好设置里修改用户名。"
+        open_preferences: "打开账号设置"
+      preferences:
+        helper: "为每个分类或标签选择通知方式。"
+        regular: "常规"
+        tracking: "跟踪"
+        watching_first_post: "关注首帖"
+        muted: "屏蔽"
+      tutorials:
+        helper: "建议先阅读教程分类，熟悉站点的基本用法。"
+        open_category: "打开教程分类"

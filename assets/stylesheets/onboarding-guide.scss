@@ -1,0 +1,147 @@
+.onboarding-guide-bubble {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1001;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  background: var(--tertiary);
+  color: var(--secondary-very-high);
+}
+
+.onboarding-guide-modal {
+  .onboarding-guide-progress {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: var(--font-down-1);
+  }
+
+  .onboarding-guide-progress .is-active {
+    font-weight: 700;
+  }
+
+  .onboarding-guide-links {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .onboarding-guide-field {
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .onboarding-guide-sample-post {
+    margin-top: 0.75rem;
+  }
+
+  .onboarding-guide-sample-post .topic-post {
+    margin: 0;
+  }
+
+  .onboarding-guide-sample-post .boxed.onscreen-post {
+    border-top: 1px solid var(--primary-low);
+    border-bottom: 1px solid var(--primary-low);
+  }
+
+  .onboarding-guide-sample-post .post-action-menu__share,
+  .onboarding-guide-sample-post .post-action-menu__copy-link,
+  .onboarding-guide-sample-post .post-action-menu__reply {
+    pointer-events: none;
+    opacity: 0.55;
+  }
+
+  .onboarding-guide-sample-post__flagged-note {
+    margin-top: 0.75rem;
+    color: var(--success);
+    font-size: var(--font-down-1);
+  }
+
+  .onboarding-guide-flagging-alt {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--primary-low);
+  }
+
+  .onboarding-guide-flagging-steps {
+    margin: 0.5rem 0 0;
+    padding-left: 1.25rem;
+  }
+
+  .onboarding-guide-message-demo {
+    margin-top: 0.75rem;
+    border: 1px solid var(--primary-low);
+    border-radius: 8px;
+    background: var(--secondary);
+    overflow: hidden;
+  }
+
+  .onboarding-guide-message-demo__row {
+    display: grid;
+    grid-template-columns: 4rem 1fr;
+    gap: 0.75rem;
+    padding: 0.65rem 0.8rem;
+    border-bottom: 1px solid var(--primary-low);
+  }
+
+  .onboarding-guide-message-demo__label {
+    color: var(--primary-medium);
+    font-size: var(--font-down-1);
+  }
+
+  .onboarding-guide-message-demo__value {
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  .onboarding-guide-message-demo__body {
+    padding: 0.8rem;
+    color: var(--primary-high);
+    font-size: var(--font-down-1);
+  }
+
+  .onboarding-guide-preference-item {
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--primary-low);
+  }
+
+  .onboarding-guide-preference-label {
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+  }
+
+  .onboarding-guide-preference-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .onboarding-guide-preference-options button {
+    border: 1px solid var(--primary-low-mid);
+    border-radius: 6px;
+    padding: 0.4rem 0.7rem;
+    background: var(--secondary);
+  }
+
+  .onboarding-guide-preference-options .is-selected {
+    background: var(--tertiary);
+    color: var(--secondary-very-high);
+  }
+
+  .onboarding-guide-topics {
+    margin-top: 1rem;
+    padding-left: 1.25rem;
+  }
+
+  .onboarding-guide-footer {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+}

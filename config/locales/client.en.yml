@@ -1,0 +1,45 @@
+en:
+  js:
+    onboarding_guide:
+      title: "Welcome"
+      reopen: "Finish guide"
+      close_for_now: "Close for now"
+      next: "Next"
+      finish: "Finish"
+      loading: "Loading"
+      steps:
+        pledges: "Read the rules"
+        flagging: "Report problems"
+        username: "Protect your privacy"
+        preferences: "Tune your feed"
+        tutorials: "Read tutorials"
+      pledges:
+        guidelines: "Read guidelines"
+        tos: "Read terms of service"
+        helper: "Type each sentence exactly to continue."
+      flagging:
+        helper: "When you run into a problem, open the post footer's ... menu and use the flag action. Try it on the sample post below first."
+        pm_helper: "If your account cannot flag yet, or you need to add context, send a private message to @%{groupName}. The point here is to learn where that lives in normal use."
+        pm_step_one: "Open the user menu from your avatar, then go to messages."
+        pm_step_two: "Start a new private message."
+        pm_step_three: "Put @%{groupName} in the recipients field and explain the issue."
+        pm_to_label: "To"
+        pm_title_label: "Title"
+        pm_title_example: "Need to report a problematic post"
+        pm_body_example: "Include the post link and a short explanation so moderators can act on it."
+        sample_body: "This sample post shows where the flag action lives in the post footer."
+        sample_username: "example-user"
+        sample_name: "Example user"
+        completed: "Flag action completed."
+      username:
+        helper: "You can change your username from account preferences if privacy matters to you."
+        open_preferences: "Open account preferences"
+      preferences:
+        helper: "Pick a notification state for each category or tag."
+        regular: "Regular"
+        tracking: "Tracking"
+        watching_first_post: "Watch first post"
+        muted: "Muted"
+      tutorials:
+        helper: "Read the tutorials category to learn the basics."
+        open_category: "Open tutorials"
