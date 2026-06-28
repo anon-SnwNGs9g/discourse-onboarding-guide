@@ -4,6 +4,5 @@ zh_CN:
     onboarding_guide_version: "当前引导版本号"
     onboarding_guide_target_groups: "用户加入这些群组时触发引导"
     onboarding_guide_tutorial_category_slug: "教程分类 slug"
-    onboarding_guide_preference_strategy: "偏好引导策略"
     onboarding_guide_pledges_json: "承诺语句 JSON"
     onboarding_guide_preference_items_json: "偏好候选项 JSON"

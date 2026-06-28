@@ -24,19 +24,6 @@ module ::DiscourseOnboardingGuide
         end
       end
 
-      def apply_default_mute_strategy!(user)
-        tutorial_slug = SiteSetting.onboarding_guide_tutorial_category_slug
-        tutorial_id = Category.find_by(slug: tutorial_slug)&.id
-        guardian = Guardian.new(user)
-
-        Category.find_each do |category|
-          next if tutorial_id.present? && category.id == tutorial_id
-          next unless guardian.can_see_category?(category)
-
-          update_category_state!(user, category.id, "muted")
-        end
-      end
-
       private
 
       def update_category_state!(user, category_id, state)

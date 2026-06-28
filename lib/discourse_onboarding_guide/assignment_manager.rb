@@ -20,10 +20,6 @@ module ::DiscourseOnboardingGuide
           DiscourseOnboardingGuide::ASSIGNED_VERSION_FIELD => [assigned_version(user), current_version].max,
         )
         user.save_custom_fields
-
-        return unless SiteSetting.onboarding_guide_preference_strategy == "mute_all_except_tutorial"
-
-        PreferenceUpdater.apply_default_mute_strategy!(user)
       end
 
       def assigned_version(user)

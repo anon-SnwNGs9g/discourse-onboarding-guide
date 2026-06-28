@@ -160,7 +160,6 @@ export default class OnboardingGuideRoot extends Component {
           parseInt(
             this.currentUser.custom_fields?.onboarding_guide_assigned_version || "0",
           ) > 0,
-        strategy: this.siteSettings.onboarding_guide_preference_strategy,
         progress,
         pledges: this.parsePledges(),
         tutorial_category: cat
