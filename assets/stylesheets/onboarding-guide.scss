@@ -45,6 +45,13 @@
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--primary-low);
   flex: 0 0 auto;
+  gap: 0.75rem;
+}
+
+.onboarding-guide-page__header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .onboarding-guide-page__title {
@@ -484,4 +491,8 @@
 .onboarding-guide-footer__hint {
   color: var(--primary-medium);
   font-size: var(--font-down-1);
+}
+
+body.onboarding-guide-active .d-header {
+  display: none;
 }

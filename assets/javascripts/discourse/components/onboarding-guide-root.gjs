@@ -3,6 +3,7 @@ import { concat, fn, get } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { modifier } from "ember-modifier";
 import OnboardingGuideCategoryBadge from "./onboarding-guide-category-badge";
+import HomeLogo from "discourse/components/header/home-logo";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { tracked } from "@glimmer/tracking";
@@ -14,7 +15,7 @@ import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { AUTO_GROUPS } from "discourse/lib/constants";
 import { i18n } from "discourse-i18n";
-
+import bodyClass from "discourse/helpers/body-class";
 const setHtml = modifier((element, [html, onLinkClick]) => {
   element.innerHTML = html;
 
@@ -484,9 +485,13 @@ export default class OnboardingGuideRoot extends Component {
     {{/if}}
 
     {{#if this.showGuide}}
+      {{bodyClass "onboarding-guide-active"}}
       <div class="onboarding-guide-page">
         <div class="onboarding-guide-page__header">
-          <h2 class="onboarding-guide-page__title">{{i18n "onboarding_guide.title"}}</h2>
+          <div class="onboarding-guide-page__header-left">
+            <HomeLogo @minimized={{true}} />
+            <h2 class="onboarding-guide-page__title">{{i18n "onboarding_guide.title"}}</h2>
+          </div>
           <button
             type="button"
             class="btn btn-default"
