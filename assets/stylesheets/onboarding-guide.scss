@@ -59,6 +59,16 @@
   font-size: var(--font-up-2);
 }
 
+.onboarding-guide-tutorials__welcome {
+  font-size: var(--font-up-3);
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+.onboarding-guide-tutorials__congrats {
+  margin-bottom: 1rem;
+}
+
 .onboarding-guide-page__body {
   flex: 1 1 auto;
   overflow-y: auto;

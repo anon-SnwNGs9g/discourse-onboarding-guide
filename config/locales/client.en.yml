@@ -59,6 +59,7 @@ en:
         watching_first_post: "Watch first post"
         muted: "Muted"
       tutorials:
-        helper: "Read the tutorials category to learn the basics."
-        helper_prefix: "Read the "
-        helper_suffix: " category to learn the basics."
+        welcome_title: "Welcome to %{site_name}!"
+        congratulations: "Congratulations on completing our brief onboarding guide!"
+        helper_prefix: "To learn more about %{site_name}, we recommend reading the"
+        helper_suffix: " category."

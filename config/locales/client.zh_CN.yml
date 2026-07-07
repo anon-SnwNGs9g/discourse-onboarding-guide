@@ -1,7 +1,7 @@
 zh_CN:
   js:
     onboarding_guide:
-      title: "欢迎"
+      title: "入站须知"
       reopen: "继续引导教程"
       close_for_now: "稍后再说"
       previous: "上一步"
@@ -59,6 +59,7 @@ zh_CN:
         watching_first_post: "关注首帖"
         muted: "屏蔽"
       tutorials:
-        helper: "建议先阅读教程分类，熟悉站点的基本用法。"
-        helper_prefix: "建议先阅读"
+        welcome_title: "欢迎来到 %{site_name}！"
+        congratulations: "恭喜你完成我们简短的入站引导！"
+        helper_prefix: "关于 %{site_name} ，我们还有更多教程文档，建议先阅读"
         helper_suffix: "，熟悉站点的基本用法。"

@@ -702,9 +702,15 @@ export default class OnboardingGuideRoot extends Component {
               </div>
             {{/each}}
           {{else}}
+            <p class="onboarding-guide-tutorials__welcome">
+              {{i18n "onboarding_guide.tutorials.welcome_title" site_name=this.siteSettings.title}}
+            </p>
+            <p class="onboarding-guide-tutorials__congrats">
+              {{i18n "onboarding_guide.tutorials.congratulations"}}
+            </p>
             {{#if this.state.tutorial_category}}
               <p>
-                {{i18n "onboarding_guide.tutorials.helper_prefix"}}
+                {{i18n "onboarding_guide.tutorials.helper_prefix" site_name=this.siteSettings.title}}
                 <a
                   href={{this.state.tutorial_category.url}}
                   class="hashtag-cooked"
@@ -715,8 +721,6 @@ export default class OnboardingGuideRoot extends Component {
                 </a>
                 {{i18n "onboarding_guide.tutorials.helper_suffix"}}
               </p>
-            {{else}}
-              <p>{{i18n "onboarding_guide.tutorials.helper"}}</p>
             {{/if}}
           {{/if}}
         </div>
