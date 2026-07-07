@@ -29,7 +29,7 @@ export default class OnboardingGuideRoot extends Component {
   @service siteSettings;
 
   @tracked state = null;
-  @tracked showModal = false;
+  @tracked guideOpen = false;
   @tracked activeStep = "pledges";
   @tracked selectedPreferences = {};
   @tracked pledgeInputs = {};
@@ -45,16 +45,12 @@ export default class OnboardingGuideRoot extends Component {
     this.loadState();
   }
 
-  get shouldRender() {
-    return this.currentUser && (this.state?.required || this.forceOpen);
-  }
-
   get showBubble() {
-    return this.shouldRender && !this.showModal;
+    return !this.guideOpen && this.currentUser && (this.state?.required || this.forceOpen);
   }
 
   get showGuide() {
-    return this.shouldRender && this.showModal;
+    return this.guideOpen;
   }
 
   get steps() {
@@ -191,16 +187,16 @@ export default class OnboardingGuideRoot extends Component {
       if (sessionStorage.getItem("discourse-onboarding-guide-force-open") === "1") {
         sessionStorage.removeItem("discourse-onboarding-guide-force-open");
         this.forceOpen = true;
-        this.showModal = true;
+        this.guideOpen = true;
         this.activeStep = this.steps[0];
       } else if (
         this.state.required &&
-        this.state.completed_version < this.state.current_version
+        this.state.completed_version < this.state.current_version &&
+        sessionStorage.getItem(STORAGE_KEY) !== "1"
       ) {
-        sessionStorage.removeItem(STORAGE_KEY);
-        this.showModal = true;
+        this.guideOpen = true;
       } else {
-        this.showModal =
+        this.guideOpen =
           this.state.required && sessionStorage.getItem(STORAGE_KEY) !== "1";
       }
     } catch (error) {
@@ -299,14 +295,14 @@ export default class OnboardingGuideRoot extends Component {
 
   @action
   closeForNow() {
-    this.showModal = false;
+    this.guideOpen = false;
     this.forceOpen = false;
     sessionStorage.setItem(STORAGE_KEY, "1");
   }
 
   @action
   reopen() {
-    this.showModal = true;
+    this.guideOpen = true;
     sessionStorage.removeItem(STORAGE_KEY);
   }
 
@@ -314,7 +310,7 @@ export default class OnboardingGuideRoot extends Component {
   openUrl(url, event) {
     event?.preventDefault();
     event?.stopPropagation();
-    this.showModal = false;
+    this.guideOpen = false;
     sessionStorage.setItem(STORAGE_KEY, "1");
     window.location.href = url;
   }
@@ -365,7 +361,7 @@ export default class OnboardingGuideRoot extends Component {
         });
 
         this.state = { ...this.state, required: false, progress };
-        this.showModal = false;
+        this.guideOpen = false;
         sessionStorage.removeItem(STORAGE_KEY);
         return;
       }
