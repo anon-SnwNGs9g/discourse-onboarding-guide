@@ -1,6 +1,7 @@
 import Component from "@glimmer/component";
 import { concat, fn, get } from "@ember/helper";
 import { on } from "@ember/modifier";
+import { modifier } from "ember-modifier";
 import OnboardingGuideCategoryBadge from "./onboarding-guide-category-badge";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
@@ -13,6 +14,21 @@ import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { AUTO_GROUPS } from "discourse/lib/constants";
 import { i18n } from "discourse-i18n";
+
+const setHtml = modifier((element, [html, onLinkClick]) => {
+  element.innerHTML = html;
+
+  const handler = (e) => {
+    const link = e.target.closest("a");
+    if (link) {
+      e.preventDefault();
+      onLinkClick();
+    }
+  };
+
+  element.addEventListener("click", handler);
+  return () => element.removeEventListener("click", handler);
+});
 
 const STORAGE_KEY = "discourse-onboarding-guide-dismissed-session";
 const STEPS = ["pledges", "flagging", "username", "preferences", "tutorials"];
@@ -39,6 +55,7 @@ export default class OnboardingGuideRoot extends Component {
   @tracked pmGroupsOpen = false;
   @tracked pmMessageClicked = false;
   @tracked forceOpen = false;
+  @tracked overlay = null; // { title, url } or null
 
   constructor() {
     super(...arguments);
@@ -67,6 +84,10 @@ export default class OnboardingGuideRoot extends Component {
 
   get currentStepNumber() {
     return this.currentStepIndex + 1;
+  }
+
+  get canCloseForNow() {
+    return this.activeStep !== "pledges" || this.state?.progress?.pledges;
   }
 
   get clickableSteps() {
@@ -307,6 +328,32 @@ export default class OnboardingGuideRoot extends Component {
   }
 
   @action
+  async openOverlay(title, url, event) {
+    event?.preventDefault();
+    try {
+      const html = await ajax(url, { dataType: "html" });
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const container =
+        doc.querySelector(".container") ||
+        doc.querySelector(".contents") ||
+        doc.querySelector("#main-outlet") ||
+        doc.querySelector("body");
+      if (container) {
+        container.querySelectorAll("nav, ul.nav, ul.nav-pills, .nav-stacked, .faq-tabs")
+          .forEach((el) => el.remove());
+      }
+      this.overlay = { title, html: container?.innerHTML || "" };
+    } catch {
+      this.openUrl(url);
+    }
+  }
+
+  @action
+  closeOverlay() {
+    this.overlay = null;
+  }
+
+  @action
   openUrl(url, event) {
     event?.preventDefault();
     event?.stopPropagation();
@@ -479,10 +526,10 @@ export default class OnboardingGuideRoot extends Component {
 
           {{#if (eq this.activeStep "pledges")}}
             <div class="onboarding-guide-links">
-              <a href="/guidelines" {{on "click" (fn this.openUrl "/guidelines")}}>
+              <a href="/guidelines" {{on "click" (fn this.openOverlay (i18n "onboarding_guide.pledges.guidelines") "/guidelines")}}>
                 {{i18n "onboarding_guide.pledges.guidelines"}}
               </a>
-              <a href="/tos" {{on "click" (fn this.openUrl "/tos")}}>
+              <a href="/tos" {{on "click" (fn this.openOverlay (i18n "onboarding_guide.pledges.tos") "/tos")}}>
                 {{i18n "onboarding_guide.pledges.tos"}}
               </a>
             </div>
@@ -671,6 +718,7 @@ export default class OnboardingGuideRoot extends Component {
 
         <div class="onboarding-guide-page__footer">
           <div class="onboarding-guide-footer__left">
+            {{#if this.canCloseForNow}}
               <button
                 type="button"
                 class="btn btn-default"
@@ -678,37 +726,62 @@ export default class OnboardingGuideRoot extends Component {
               >
                 {{i18n "onboarding_guide.close_for_now"}}
               </button>
-            </div>
-            <div class="onboarding-guide-footer__right">
-              {{#if this.continueHint}}
-                <span class="onboarding-guide-footer__hint">
-                  {{this.continueHint}}
-                </span>
+            {{/if}}
+          </div>
+          <div class="onboarding-guide-footer__right">
+            {{#if this.continueHint}}
+              <span class="onboarding-guide-footer__hint">
+                {{this.continueHint}}
+              </span>
+            {{/if}}
+            <button
+              type="button"
+              class="btn btn-default"
+              disabled={{this.isFirstStep}}
+              {{on "click" this.previous}}
+            >
+              {{i18n "onboarding_guide.previous"}}
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              disabled={{if this.canContinue false true}}
+              {{on "click" this.continue}}
+            >
+              {{#if this.isLastStep}}
+                {{i18n "onboarding_guide.finish"}}
+              {{else}}
+                {{i18n "onboarding_guide.next"}}
               {{/if}}
-              <button
-                type="button"
-                class="btn btn-default"
-                disabled={{this.isFirstStep}}
-                {{on "click" this.previous}}
-              >
-                {{i18n "onboarding_guide.previous"}}
-              </button>
-              <button
-                type="button"
-                class="btn btn-primary"
-                disabled={{if this.canContinue false true}}
-                {{on "click" this.continue}}
-              >
-                {{#if this.isLastStep}}
-                  {{i18n "onboarding_guide.finish"}}
-                {{else}}
-                  {{i18n "onboarding_guide.next"}}
-                {{/if}}
-              </button>
-            </div>
+            </button>
           </div>
         </div>
       </div>
+
+
+      {{#if this.overlay}}
+        <div class="onboarding-guide-overlay">
+          <div class="onboarding-guide-overlay__header">
+            <button
+              type="button"
+              class="btn btn-default"
+              {{on "click" this.closeOverlay}}
+            >
+              {{dIcon "chevron-left"}}
+              {{i18n "onboarding_guide.previous"}}
+            </button>
+            <h3 class="onboarding-guide-overlay__title">{{this.overlay.title}}</h3>
+            <button
+              type="button"
+              class="btn btn-default"
+              {{on "click" this.closeOverlay}}
+            >
+              {{dIcon "times"}}
+            </button>
+          </div>
+          <div class="onboarding-guide-overlay__body" {{setHtml this.overlay.html this.closeOverlay}}></div>
+        </div>
+      {{/if}}
     {{/if}}
   </template>
 }
