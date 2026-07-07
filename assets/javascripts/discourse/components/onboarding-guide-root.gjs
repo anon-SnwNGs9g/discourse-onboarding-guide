@@ -9,7 +9,6 @@ import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
 import OnboardingGuideSamplePost from "./onboarding-guide-sample-post";
 import DButton from "discourse/ui-kit/d-button";
-import DModal from "discourse/ui-kit/d-modal";
 import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { AUTO_GROUPS } from "discourse/lib/constants";
@@ -68,6 +67,10 @@ export default class OnboardingGuideRoot extends Component {
 
   get currentStepIndex() {
     return this.steps.indexOf(this.activeStep);
+  }
+
+  get currentStepNumber() {
+    return this.currentStepIndex + 1;
   }
 
   get clickableSteps() {
@@ -438,12 +441,23 @@ export default class OnboardingGuideRoot extends Component {
     {{/if}}
 
     {{#if this.showGuide}}
-      <DModal
-        @title={{this.currentStepLabel}}
-        @closeModal={{this.closeForNow}}
-        class="onboarding-guide-modal"
-      >
-        <:body>
+      <div class="onboarding-guide-page">
+        <div class="onboarding-guide-page__header">
+          <h2 class="onboarding-guide-page__title">{{i18n "onboarding_guide.title"}}</h2>
+          <button
+            type="button"
+            class="btn btn-default"
+            {{on "click" this.closeForNow}}
+          >
+            {{dIcon "times"}}
+          </button>
+        </div>
+
+        <div class="onboarding-guide-page__body">
+          <div class="onboarding-guide-page__step-heading">
+            <span class="onboarding-guide-page__step-number">{{this.currentStepNumber}}/{{this.steps.length}}</span>
+            <span class="onboarding-guide-page__step-label">{{this.currentStepLabel}}</span>
+          </div>
           <div class="onboarding-guide-progress">
             {{#each this.steps as |step|}}
               <div
@@ -657,11 +671,10 @@ export default class OnboardingGuideRoot extends Component {
               <p>{{i18n "onboarding_guide.tutorials.helper"}}</p>
             {{/if}}
           {{/if}}
-        </:body>
+        </div>
 
-        <:footer>
-          <div class="onboarding-guide-footer">
-            <div class="onboarding-guide-footer__left">
+        <div class="onboarding-guide-page__footer">
+          <div class="onboarding-guide-footer__left">
               <button
                 type="button"
                 class="btn btn-default"
@@ -698,8 +711,8 @@ export default class OnboardingGuideRoot extends Component {
               </button>
             </div>
           </div>
-        </:footer>
-      </DModal>
+        </div>
+      </div>
     {{/if}}
   </template>
 }
