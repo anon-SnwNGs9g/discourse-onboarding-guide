@@ -20,12 +20,14 @@ export default class OnboardingGuideProfileButton extends Component {
 
   <template>
     {{#if this.visible}}
-      <DButton
-        @action={{this.openGuide}}
-        @icon="redo"
-        @label="onboarding_guide.profile_button"
-        class="btn-default"
-      />
+      <li>
+        <DButton
+          @action={{this.openGuide}}
+          @icon="clock-rotate-left"
+          @label="onboarding_guide.profile_button"
+          class="btn-default"
+        />
+      </li>
     {{/if}}
   </template>
 }
