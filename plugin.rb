@@ -25,6 +25,7 @@ require_relative "lib/discourse_onboarding_guide/assignment_manager"
 require_relative "lib/discourse_onboarding_guide/preference_updater"
 require_relative "lib/discourse_onboarding_guide/state_resolver"
 require_relative "lib/discourse_onboarding_guide/tutorial_category_validator"
+require_relative "lib/discourse_onboarding_guide/mandatory_setting_validator"
 
 after_initialize do
   require_relative "app/controllers/discourse_onboarding_guide/onboarding_controller"

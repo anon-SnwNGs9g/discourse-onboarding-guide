@@ -1,8 +1,11 @@
 zh_CN:
   site_settings:
+    errors:
+      onboarding_guide_mandatory_automatic_group: "关闭强制模式前，所有目标群组必须允许成员自行退出"
     onboarding_guide_enabled: "启用新人引导"
     onboarding_guide_version: "当前引导版本号"
     onboarding_guide_target_groups: "用户加入这些群组时触发引导"
     onboarding_guide_tutorial_category_slug: "教程分类 slug"
     onboarding_guide_pledges_json: "承诺语句 JSON"
+    onboarding_guide_mandatory: "要求所有被分配用户完成引导"
     onboarding_guide_preference_items_json: "偏好候选项 JSON"

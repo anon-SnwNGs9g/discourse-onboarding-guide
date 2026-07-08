@@ -8,6 +8,7 @@ plugins:
   onboarding_guide_target_groups:
     default: ""
     type: group_list
+    client: true
   onboarding_guide_tutorial_category_slug:
     default: "tutorial"
     client: true
@@ -16,6 +17,10 @@ plugins:
     default: '["我承诺不截图外传。","我了解账号安全的重要性，不会泄露密码或外借。"]'
     client: true
     validator: "::DiscourseOnboardingGuide::JsonArrayValidator"
+  onboarding_guide_mandatory:
+    default: true
+    client: true
+    validator: "::DiscourseOnboardingGuide::MandatorySettingValidator"
   onboarding_guide_preference_items_json:
     default: "[]"
     validator: "::DiscourseOnboardingGuide::PreferenceItemsValidator"

@@ -1,8 +1,11 @@
 en:
   site_settings:
+    errors:
+      onboarding_guide_mandatory_automatic_group: "All target groups must allow members to leave before disabling mandatory mode"
     onboarding_guide_enabled: "Enable onboarding guide"
     onboarding_guide_version: "Current onboarding guide version"
     onboarding_guide_target_groups: "Groups that trigger onboarding when a user joins them"
     onboarding_guide_tutorial_category_slug: "Tutorial category slug"
     onboarding_guide_pledges_json: "Pledge prompts JSON"
+    onboarding_guide_mandatory: "Require all assigned users to complete the guide"
     onboarding_guide_preference_items_json: "Preference items JSON"

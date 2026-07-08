@@ -59,6 +59,16 @@
   font-size: var(--font-up-2);
 }
 
+.onboarding-guide-page__header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.onboarding-guide-quit-btn {
+  color: var(--danger);
+}
+
 .onboarding-guide-tutorials__welcome {
   font-size: var(--font-up-3);
   font-weight: 700;

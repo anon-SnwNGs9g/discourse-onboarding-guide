@@ -7,6 +7,8 @@ en:
       previous: "Previous"
       next: "Next"
       finish: "Finish"
+      quit: "Exit guide"
+      quit_confirm: "You will be removed from the following group(s) and the guide will stop showing: %{groups}. Are you sure?"
       profile_button: "Restart tutorial"
       loading: "Loading"
       steps:

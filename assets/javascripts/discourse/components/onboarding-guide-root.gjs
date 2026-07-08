@@ -47,6 +47,7 @@ export default class OnboardingGuideRoot extends Component {
   @service currentUser;
   @service site;
   @service siteSettings;
+  @service dialog;
 
   @tracked state = null;
   @tracked guideOpen = false;
@@ -159,6 +160,14 @@ export default class OnboardingGuideRoot extends Component {
 
   get isFirstStep() {
     return this.currentStepIndex <= 0;
+  }
+
+  get isMandatory() {
+    return this.siteSettings.onboarding_guide_mandatory;
+  }
+
+  get canQuit() {
+    return this.currentUser?.staff || (!this.isMandatory && this.targetGroups.length > 0);
   }
 
   async loadState() {
@@ -323,6 +332,47 @@ export default class OnboardingGuideRoot extends Component {
     this.guideOpen = false;
     this.forceOpen = false;
     sessionStorage.setItem(STORAGE_KEY, "1");
+  }
+
+  get targetGroups() {
+    const userGroupIds = new Set(this.currentUser?.groups?.map((g) => g.id) || []);
+    return ((this.siteSettings.onboarding_guide_target_groups || "")
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0 && userGroupIds.has(Number(id)))
+      .map((id) => this.site.groups?.find((g) => String(g.id) === id))
+      .filter(Boolean));
+  }
+
+  @action
+  quitGuide() {
+    const groups = this.targetGroups;
+    if (groups.length === 0) {
+      this.state = { ...this.state, required: false };
+      this.guideOpen = false;
+      this.forceOpen = false;
+      sessionStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+
+    this.dialog.confirm({
+      message: i18n("onboarding_guide.quit_confirm", { groups: groups.map((g) => g.name).join(", ") }),
+      didConfirm: async () => {
+        try {
+          await Promise.all(
+            groups.map((g) =>
+              ajax(`/groups/${g.id}/leave`, { method: "DELETE" }).catch(() => {})
+            ),
+          );
+          this.state = { ...this.state, required: false };
+          this.guideOpen = false;
+          this.forceOpen = false;
+          sessionStorage.removeItem(STORAGE_KEY);
+        } catch (error) {
+          popupAjaxError(error);
+        }
+      },
+    });
   }
 
   @action
@@ -495,13 +545,17 @@ export default class OnboardingGuideRoot extends Component {
             <HomeLogo @minimized={{true}} />
             <h2 class="onboarding-guide-page__title">{{i18n "onboarding_guide.title"}}</h2>
           </div>
-          <button
-            type="button"
-            class="btn btn-default"
-            {{on "click" this.closeForNow}}
-          >
-            {{dIcon "times"}}
-          </button>
+          <div class="onboarding-guide-page__header-right">
+            {{#if this.canQuit}}
+              <button
+                type="button"
+                class="btn btn-default onboarding-guide-quit-btn"
+                {{on "click" this.quitGuide}}
+              >
+                {{i18n "onboarding_guide.quit"}}
+              </button>
+            {{/if}}
+          </div>
         </div>
 
         <div class="onboarding-guide-page__body">
