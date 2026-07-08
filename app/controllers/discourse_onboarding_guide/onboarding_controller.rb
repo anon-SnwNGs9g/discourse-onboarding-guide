@@ -56,13 +56,7 @@ module ::DiscourseOnboardingGuide
 
     def preference_items_params
       raw_items = params.require(:items)
-
-      items = if raw_items.is_a?(ActionController::Parameters)
-        raw_items.map { |_key, item| item }
-      else
-        Array.wrap(raw_items)
-      end
-
+      items = raw_items.is_a?(ActionController::Parameters) ? raw_items.values : Array.wrap(raw_items)
       items.map { |item| item.permit(:id, :type, :state).to_h.symbolize_keys }
     end
   end
