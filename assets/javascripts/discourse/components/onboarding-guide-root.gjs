@@ -15,9 +15,10 @@ import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { AUTO_GROUPS } from "discourse/lib/constants";
 import { i18n } from "discourse-i18n";
+import { sanitize } from "discourse/lib/text";
 import bodyClass from "discourse/helpers/body-class";
 const setHtml = modifier((element, [html, onLinkClick]) => {
-  element.innerHTML = html;
+  element.innerHTML = sanitize(html);
 
   const handler = (e) => {
     const link = e.target.closest("a");
