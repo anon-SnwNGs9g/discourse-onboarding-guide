@@ -1,16 +1,18 @@
 import Component from "@glimmer/component";
-import { concat, fn, get } from "@ember/helper";
+import { fn, get } from "@ember/helper";
 import { on } from "@ember/modifier";
 import { modifier } from "ember-modifier";
-import OnboardingGuideCategoryBadge from "./onboarding-guide-category-badge";
 import HomeLogo from "discourse/components/header/home-logo";
 import { action } from "@ember/object";
 import { service } from "@ember/service";
 import { tracked } from "@glimmer/tracking";
 import { ajax } from "discourse/lib/ajax";
 import { popupAjaxError } from "discourse/lib/ajax-error";
-import OnboardingGuideSamplePost from "./onboarding-guide-sample-post";
-import DButton from "discourse/ui-kit/d-button";
+import OnboardingGuidePledges from "./onboarding-guide-pledges";
+import OnboardingGuideFlagging from "./onboarding-guide-flagging";
+import OnboardingGuideUsername from "./onboarding-guide-username";
+import OnboardingGuidePreferences from "./onboarding-guide-preferences";
+import OnboardingGuideTutorials from "./onboarding-guide-tutorials";
 import dIcon from "discourse/ui-kit/helpers/d-icon";
 import { eq } from "discourse/truth-helpers";
 import { AUTO_GROUPS } from "discourse/lib/constants";
@@ -531,198 +533,46 @@ export default class OnboardingGuideRoot extends Component {
           </div>
 
           {{#if (eq this.activeStep "pledges")}}
-            <div class="onboarding-guide-links">
-              <a href="/guidelines" {{on "click" (fn this.openOverlay (i18n "onboarding_guide.pledges.guidelines") "/guidelines")}}>
-                {{i18n "onboarding_guide.pledges.guidelines"}}
-              </a>
-              <a href="/tos" {{on "click" (fn this.openOverlay (i18n "onboarding_guide.pledges.tos") "/tos")}}>
-                {{i18n "onboarding_guide.pledges.tos"}}
-              </a>
-            </div>
-            {{#each this.state.pledges as |pledge index|}}
-              <label class="onboarding-guide-field">
-                <span>{{pledge}}</span>
-                <input
-                  type="text"
-                  value={{get this.pledgeInputs index}}
-                  {{on "input" (fn this.updatePledge index)}}
-                />
-              </label>
-            {{/each}}
-          {{else if (eq this.activeStep "flagging")}}
-            <p>{{i18n "onboarding_guide.flagging.helper"}}</p>
-            <OnboardingGuideSamplePost @onFlag={{this.markSampleFlagged}} />
-            <div class="onboarding-guide-flagging-alt">
-              <p>
-                {{i18n "onboarding_guide.flagging.pm_helper_before"}}
-                <a href="/g/{{this.moderatorsGroupName}}" class="mention-group" {{on "click" (fn this.openUrl (concat "/g/" this.moderatorsGroupName))}}>@{{this.moderatorsGroupName}}</a>
-                {{i18n "onboarding_guide.flagging.pm_helper_after"}}
-              </p>
-              <ol class="onboarding-guide-flagging-steps">
-                <li>{{i18n "onboarding_guide.flagging.pm_step_one"}}</li>
-                <li>{{i18n "onboarding_guide.flagging.pm_step_two"}}</li>
-                <li>
-                  {{i18n
-                    "onboarding_guide.flagging.pm_step_three"
-                    groupName=this.moderatorsGroupName
-                  }}
-                </li>
-                <li>
-                  {{i18n
-                    "onboarding_guide.flagging.pm_step_four"
-                    groupName=this.moderatorsGroupName
-                  }}
-                </li>
-              </ol>
-
-              <div class="onboarding-guide-group-demo">
-                <div class="onboarding-guide-group-demo__mobile-frame">
-                  <div class="onboarding-guide-group-demo__topbar">
-                    <button
-                      type="button"
-                      class="onboarding-guide-group-demo__hamburger"
-                      {{on "click" this.togglePmSidebar}}
-                      aria-label={{i18n "onboarding_guide.flagging.pm_hamburger_label"}}
-                    >
-                      {{dIcon "bars"}}
-                    </button>
-                  </div>
-
-                  {{#if this.pmSidebarOpen}}
-                    <div class="onboarding-guide-group-demo__sidebar">
-                      <div class="onboarding-guide-group-demo__sidebar-item">
-                        {{i18n "onboarding_guide.flagging.pm_sidebar_home"}}
-                      </div>
-                      <div class="onboarding-guide-group-demo__sidebar-item">
-                        {{i18n "onboarding_guide.flagging.pm_sidebar_latest"}}
-                      </div>
-                      <div class="onboarding-guide-group-demo__more-wrap">
-                        <button
-                          type="button"
-                          class="onboarding-guide-group-demo__sidebar-item is-active"
-                          {{on "click" this.togglePmMore}}
-                        >
-                          <span class="onboarding-guide-group-demo__ellipsis">...</span>
-                          <span>{{i18n "onboarding_guide.flagging.pm_sidebar_more"}}</span>
-                        </button>
-
-                        {{#if this.pmMoreOpen}}
-                          <div class="onboarding-guide-group-demo__dropdown">
-                            <div>{{i18n "onboarding_guide.flagging.pm_dropdown_bookmarks"}}</div>
-                            <button
-                              type="button"
-                              class="onboarding-guide-group-demo__dropdown-item {{if this.pmGroupsOpen "is-active" ""}}"
-                              {{on "click" this.openPmGroups}}
-                            >
-                              {{i18n "onboarding_guide.flagging.pm_dropdown_groups"}}
-                            </button>
-                            <div>{{i18n "onboarding_guide.flagging.pm_dropdown_tags"}}</div>
-                          </div>
-                        {{/if}}
-                      </div>
-                    </div>
-                  {{/if}}
-                </div>
-              </div>
-
-              {{#if this.pmGroupsOpen}}
-                <div class="onboarding-guide-group-card">
-                  <div class="onboarding-guide-group-card__header">
-                    <div>
-                      <div class="onboarding-guide-group-card__title">
-                        {{i18n "onboarding_guide.flagging.pm_group_title"}}
-                      </div>
-                      <div class="onboarding-guide-group-card__subtitle">
-                        {{i18n
-                          "onboarding_guide.flagging.pm_group_hint"
-                          groupName=this.moderatorsGroupName
-                        }}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      class="btn btn-primary"
-                      {{on "click" this.markPmMessageClicked}}
-                    >
-                      {{i18n "onboarding_guide.flagging.pm_message_button"}}
-                    </button>
-                  </div>
-
-                  <div class="onboarding-guide-group-card__body">
-                    {{#if this.pmMessageClicked}}
-                      <div class="onboarding-guide-group-card__done">
-                        {{i18n "onboarding_guide.flagging.pm_completed"}}
-                      </div>
-                    {{/if}}
-                  </div>
-                </div>
-              {{/if}}
-            </div>
-          {{else if (eq this.activeStep "username")}}
-            <p>{{i18n "onboarding_guide.username.helper"}}</p>
-            <DButton
-              @label="onboarding_guide.username.open_preferences"
-              @action={{fn this.openUrl "/my/preferences/account"}}
+            <OnboardingGuidePledges
+              @pledges={{this.state.pledges}}
+              @pledgeInputs={{this.pledgeInputs}}
+              @updatePledge={{this.updatePledge}}
+              @openOverlay={{this.openOverlay}}
             />
+          {{else if (eq this.activeStep "flagging")}}
+            <OnboardingGuideFlagging
+              @sampleFlagClicked={{this.sampleFlagClicked}}
+              @pmSidebarOpen={{this.pmSidebarOpen}}
+              @pmMoreOpen={{this.pmMoreOpen}}
+              @pmGroupsOpen={{this.pmGroupsOpen}}
+              @pmMessageClicked={{this.pmMessageClicked}}
+              @moderatorsGroupName={{this.moderatorsGroupName}}
+              @markSampleFlagged={{this.markSampleFlagged}}
+              @markPmMessageClicked={{this.markPmMessageClicked}}
+              @togglePmSidebar={{this.togglePmSidebar}}
+              @togglePmMore={{this.togglePmMore}}
+              @openPmGroups={{this.openPmGroups}}
+              @openUrl={{this.openUrl}}
+            />
+          {{else if (eq this.activeStep "username")}}
+            <OnboardingGuideUsername @openUrl={{this.openUrl}} />
           {{else if (eq this.activeStep "preferences")}}
-            <p>{{i18n "onboarding_guide.preferences.helper"}}</p>
-            {{#each this.state.preference_items as |group|}}
-              <div class="onboarding-guide-preference-group">
-                <div class="onboarding-guide-preference-group__summary">{{group.summary}}</div>
-                {{#each group.items as |item|}}
-                  <div class="onboarding-guide-preference-item">
-                    <div class="onboarding-guide-preference-label">
-                      {{#if (eq item.type "category")}}
-                        {{#let (this.preferenceItemCategory item) as |cat|}}
-                          {{#if cat}}
-                            <a href={{this.preferenceItemUrl item}} class="hashtag-cooked" {{on "click" (fn this.openUrl (this.preferenceItemUrl item))}}>
-                              <OnboardingGuideCategoryBadge @category={{cat}} />
-                              <span>{{item.label}}</span>
-                            </a>
-                          {{else}}
-                            <span>{{item.label}}</span>
-                          {{/if}}
-                        {{/let}}
-                      {{else}}
-                        <a href={{this.preferenceItemUrl item}} class="hashtag-cooked" {{on "click" (fn this.openUrl (this.preferenceItemUrl item))}}>{{dIcon "tag"}}<span>{{item.label}}</span></a>
-                      {{/if}}
-                    </div>
-                    <div class="onboarding-guide-preference-options">
-                      {{#each this.notificationStates as |state|}}
-                        <button
-                          type="button"
-                          class={{if (eq (this.selectedState item) state) "is-selected" ""}}
-                          {{on "click" (fn this.choosePreference item state)}}
-                        >
-                          {{i18n (concat "onboarding_guide.preferences." state)}}
-                        </button>
-                      {{/each}}
-                    </div>
-                  </div>
-                {{/each}}
-              </div>
-            {{/each}}
+            <OnboardingGuidePreferences
+              @preferenceItems={{this.state.preference_items}}
+              @preferenceItemCategory={{this.preferenceItemCategory}}
+              @preferenceItemUrl={{this.preferenceItemUrl}}
+              @selectedState={{this.selectedState}}
+              @choosePreference={{this.choosePreference}}
+              @notificationStates={{this.notificationStates}}
+              @openUrl={{this.openUrl}}
+            />
           {{else}}
-            <p class="onboarding-guide-tutorials__welcome">
-              {{i18n "onboarding_guide.tutorials.welcome_title" site_name=this.siteSettings.title}}
-            </p>
-            <p class="onboarding-guide-tutorials__congrats">
-              {{i18n "onboarding_guide.tutorials.congratulations"}}
-            </p>
-            {{#if this.state.tutorial_category}}
-              <p>
-                {{i18n "onboarding_guide.tutorials.helper_prefix" site_name=this.siteSettings.title}}
-                <a
-                  href={{this.state.tutorial_category.url}}
-                  class="hashtag-cooked"
-                  {{on "click" (fn this.openUrl this.state.tutorial_category.url)}}
-                >
-                  <OnboardingGuideCategoryBadge @category={{this.siteCategory}} />
-                  <span>{{this.state.tutorial_category.name}}</span>
-                </a>
-                {{i18n "onboarding_guide.tutorials.helper_suffix"}}
-              </p>
-            {{/if}}
+            <OnboardingGuideTutorials
+              @title={{this.siteSettings.title}}
+              @tutorialCategory={{this.state.tutorial_category}}
+              @siteCategory={{this.siteCategory}}
+              @openUrl={{this.openUrl}}
+            />
           {{/if}}
         </div>
 
