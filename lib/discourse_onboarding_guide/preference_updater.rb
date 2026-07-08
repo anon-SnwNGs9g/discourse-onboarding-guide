@@ -3,6 +3,7 @@
 module ::DiscourseOnboardingGuide
   class PreferenceUpdater
     VALID_STATES = %w[regular tracking watching_first_post muted].freeze
+    VALID_TYPES = %w[category tag].freeze
 
     class << self
       def update!(user, items)
@@ -14,6 +15,7 @@ module ::DiscourseOnboardingGuide
           state = item[:state].to_s
 
           raise Discourse::InvalidParameters.new(:items) if !VALID_STATES.include?(state)
+          raise Discourse::InvalidParameters.new(:items) if !VALID_TYPES.include?(type)
           raise Discourse::InvalidParameters.new(:items) if !allowed_items.key?("#{type}:#{id}")
 
           if type == "category"
