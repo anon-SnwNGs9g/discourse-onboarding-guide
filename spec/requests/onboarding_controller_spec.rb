@@ -94,4 +94,62 @@ RSpec.describe DiscourseOnboardingGuide::OnboardingController, type: :request do
     expect(response.status).to eq(200)
     expect(user.reload.custom_fields[DiscourseOnboardingGuide::COMPLETED_VERSION_FIELD].to_i).to eq(3)
   end
+
+  it "rejects completion with mismatched version" do
+    DiscourseOnboardingGuide::AssignmentManager.assign_new_user!(user)
+    sign_in(user)
+
+    post "/onboarding-guide/progress", params: {
+      progress: { pledges: true, flagging: true, username: true, preferences: true, tutorials: true, current_step: "tutorials", version: 3 },
+    }
+    expect(response.status).to eq(200)
+
+    post "/onboarding-guide/complete", params: { version: 99 }
+    expect(response.status).to eq(422)
+  end
+
+  it "rejects completion when progress is incomplete" do
+    DiscourseOnboardingGuide::AssignmentManager.assign_new_user!(user)
+    sign_in(user)
+
+    post "/onboarding-guide/progress", params: {
+      progress: { pledges: true, current_step: "pledges", version: 3 },
+    }
+    expect(response.status).to eq(200)
+
+    post "/onboarding-guide/complete", params: { version: 3 }
+    expect(response.status).to eq(422)
+  end
+
+  it "rejects preference update with invalid item type" do
+    DiscourseOnboardingGuide::AssignmentManager.assign_new_user!(user)
+    sign_in(user)
+
+    post "/onboarding-guide/preferences", params: {
+      items: [{ id: 1, type: "invalid_type", state: "muted" }],
+    }
+    expect(response.status).to eq(422)
+  end
+
+  it "rejects preference update with invalid state" do
+    DiscourseOnboardingGuide::AssignmentManager.assign_new_user!(user)
+    sign_in(user)
+
+    post "/onboarding-guide/preferences", params: {
+      items: [{ id: category.id, type: "category", state: "super_duper" }],
+    }
+    expect(response.status).to eq(422)
+  end
+
+  it "handles corrupted progress JSON gracefully" do
+    DiscourseOnboardingGuide::AssignmentManager.assign_new_user!(user)
+    user.upsert_custom_fields(DiscourseOnboardingGuide::PROGRESS_FIELD => "corrupted")
+    user.save_custom_fields
+    sign_in(user)
+
+    post "/onboarding-guide/progress", params: {
+      progress: { pledges: true, version: 3 },
+    }
+    expect(response.status).to eq(200)
+  end
 end
