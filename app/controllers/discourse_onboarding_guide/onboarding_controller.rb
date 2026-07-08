@@ -56,12 +56,14 @@ module ::DiscourseOnboardingGuide
 
     def preference_items_params
       raw_items = params.require(:items)
-      raw_items = raw_items.to_unsafe_h.values if raw_items.is_a?(ActionController::Parameters)
 
-      Array.wrap(raw_items).map do |item|
-        item = item.to_unsafe_h if item.is_a?(ActionController::Parameters)
-        ActionController::Parameters.new(item).permit(:id, :type, :state).to_h.symbolize_keys
+      items = if raw_items.is_a?(ActionController::Parameters)
+        raw_items.map { |_key, item| item }
+      else
+        Array.wrap(raw_items)
       end
+
+      items.map { |item| item.permit(:id, :type, :state).to_h.symbolize_keys }
     end
   end
 end
