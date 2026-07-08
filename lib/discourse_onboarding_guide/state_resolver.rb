@@ -48,7 +48,7 @@ module ::DiscourseOnboardingGuide
 
       def progress_for(user)
         raw = user.custom_fields[DiscourseOnboardingGuide::PROGRESS_FIELD]
-        parsed = raw.is_a?(Hash) ? raw : JSON.parse(raw || "{}")
+        parsed = JSON.parse(raw || "{}")
         return {} unless parsed.is_a?(Hash)
 
         boolean_type = ActiveModel::Type::Boolean.new
